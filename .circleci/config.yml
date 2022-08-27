@@ -9,18 +9,25 @@ defaults: &defaults
   docker:
     - image: circleci/node:13.8.0
 
-# commands:
-#   destroy-environment:
-#     description: Destroy back-end and front-end cloudformation stacks given a workflow ID.
-#     parameters:
-#       # Add parameter here   
-#     steps:
-#       - run:
-#           name: Destroy environments
-#           when: on_fail
-#           command: |
-#             # Your code here
-#             exit 1
+commands:
+  # destroy-environment:
+  #   description: Destroy back-end and front-end cloudformation stacks given a workflow ID.
+  #   parameters:
+  #     # Add parameter here   
+  #   steps:
+  #     - run:
+  #         name: Destroy environments
+  #         when: on_fail
+  #         command: |
+  #           # Your code here
+  #           exit 1
+
+  failure_notification:
+        steps:
+        - slack/notify:
+            event: fail
+            channel: ci-notifications
+            template: basic_fail_1
 
 #   revert-migrations:
 #     description: Revert the last migration if successfully run in the current workflow.
@@ -60,15 +67,12 @@ jobs:
             npm install
             npm run build
 
-      - slack/notify:
-          channel: ABCXYZ
-          event: fail
-          template: basic_fail_1
-
             #exit 1
       - save_cache:
           paths: [frontend/node_modules]
           key: frontend-build
+
+      - failure_notification
 
   build-backend:
 
@@ -83,14 +87,12 @@ jobs:
             cd backend
             npm install
             npm run build
-      - slack/notify:
-          channel: ABCXYZ
-          event: fail
-          template: basic_fail_1
              
       - save_cache:
           paths: [backend/node_modules]
           key: backend-build
+
+      - failure_notification
 
   test-frontend:
    
@@ -105,14 +107,12 @@ jobs:
             cd frontend
             npm install
             npm run test
-      - slack/notify:
-          channel: ABCXYZ
-          event: fail
-          template: basic_fail_1
           
       - restore_cache:
           keys:
             - frontend-build
+
+      - failure_notification
       # Restore from cache
       # Your job code here
                 
@@ -130,15 +130,12 @@ jobs:
             cd backend
             npm install
             npm run test
-
-      - slack/notify:
-          channel: ABCXYZ
-          event: fail
-          template: basic_fail_1
           
       - restore_cache:
           keys:
             - backend-build
+
+      - failure_notification
             
   scan-frontend:
     <<: *defaults 
@@ -158,10 +155,9 @@ jobs:
             # npm install oauth-sign@^0.9.0
             npm audit fix --audit-level=critical --force
             npm audit --audit-level=critical
-      - slack/notify:
-          channel: ABCXYZ
-          event: fail
-          template: basic_fail_1
+
+      - failure_notification
+
 
 
   scan-backend:
@@ -182,11 +178,18 @@ jobs:
             npm audit fix --force --audit-level=critical
             npm audit fix --force --audit-level=critical
             npm audit --audit-level=critical
-      - slack/notify:
-          channel: ABCXYZ
-          event: fail
-          template: basic_fail_1
+
+      - failure_notification
       
+
+  notify_on_success:
+    docker:
+      - image: cimg/base:stable
+    steps:
+    - slack/notify:
+        event: pass
+        channel: ci-notifications
+        template: success_tagged_deployment_1
 
 #   deploy-infrastructure:
 #     docker:
@@ -358,21 +361,24 @@ workflows:
   default:
     jobs:
       - build-frontend
-          context: for-configs
+          
       - build-backend
-          context: for-configs
+          
       - test-frontend:
           requires: [build-frontend]
-          context: for-configs
+          
       - test-backend:
           requires: [build-backend]
-          context: for-configs
-      - scan-backend:
-          requires: [build-backend]
-          context: for-configs
+
       - scan-frontend:
           requires: [build-frontend]
-          context: for-configs
+          
+      - scan-backend:
+          requires: [build-backend]
+
+      - notify_on_success:
+          requires: [scan-backend]
+          
       # - deploy-infrastructure:
       #     requires: [test-frontend, test-backend, scan-frontend, scan-backend]
       #     filters:
