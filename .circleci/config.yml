@@ -301,20 +301,21 @@ jobs:
       # Here's where you will add some code to rollback on failure 
       - destroy-environment     
 
-  run-migrations:
-    <<: *defaults
-    steps:
-      # Checkout code from git
-      - run:
-          name: Run migrations
-          command: |
-            # Your code here
-            exit 1
-      - run:
-          name: Send migration results to memstash
-          command: |
-            # Your code here
-            exit 1
+  # run-migrations:
+  #   <<: *defaults
+  #   steps:
+  #     # Checkout code from git
+  #     - checkout
+  #     - run:
+  #         name: Run migrations
+  #         command: |
+
+  #           npm run migrations > migrations_dump.txt
+  #     - run:
+  #         name: Send migration results to memstash
+  #         command: |
+  #           # Your code here
+  #           exit 1
      # Here's where you will add some code to rollback on failure      
 
 #   deploy-frontend:
