@@ -22,7 +22,7 @@ commands:
           name: Destroy environments
           when: on_fail
           command: |
-            aws s3 rm s3://udapeople-<<parameters.Workflow_ID>> --recursive
+            # aws s3 rm s3://udapeople-<<parameters.Workflow_ID>> --recursive
             aws cloudformation delete-stack --stack-name udapeople-frontend-<< parameters.Workflow_ID >>
             aws cloudformation delete-stack --stack-name udapeople-backend-<< parameters.Workflow_ID >>
 
@@ -32,6 +32,40 @@ commands:
             event: fail
             channel: ci-notifications
             template: basic_fail_1
+
+  install-ansible:
+    description: Install ansible
+    steps:
+      - run:
+          name: Installing ansible
+          command: |
+            sudo apt update
+            sudo apt install ansible
+
+  install-aws-cli:
+    description: Install AWS cli
+    steps:
+      - run:
+          name: Installing AWS cli
+          command: |
+            curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+            unzip awscliv2.zip
+            sudo ./aws/install
+
+  install-gzip-tar:
+    description: Install gzip and tar
+    steps:
+      - run:
+          name: Installing gzip and tar
+          command: |
+            sudo apt -y install gzip
+            sudo apt -y install tar
+
+
+
+
+
+
 
 #   revert-migrations:
 #     description: Revert the last migration if successfully run in the current workflow.
@@ -241,24 +275,30 @@ jobs:
       - destroy-environment
       # Here's where you will add some code to rollback on failure      
 
-#   configure-infrastructure:
-#     docker:
-#       # Docker image here that supports Ansible
-#     steps:
-#       # Checkout code from git
-#       # Add ssh keys with fingerprint
-#       # attach workspace
-#       - run:
-#           name: Install dependencies
-#           command: |
-#             # Your code here
-#             exit 1
-#       - run:
-#           name: Configure server
-#           command: |
-#             # Your code here
-#             exit 1
-#       # Here's where you will add some code to rollback on failure      
+  configure-infrastructure:
+    docker:
+      # Docker image here that supports Ansible
+      - image: cimg/base:stable
+    steps:
+      # Checkout code from git
+      - checkout
+      - install-ansible
+      - install-aws-cli
+      - install-gzip-tar
+      # Add ssh keys with fingerprint
+       fingerprints: ["2e:9b:91:11:6c:7d:65:c5:8d:02:a5:00:e7:9d:c2:3f"]
+      # attach workspace
+      - attach_workspace:
+          at: ~/
+            
+      - run:
+          name: Configure server
+          command: |
+            cd .circleci/ansible
+            cat inventory.txt
+            ansible-playbook -i inventory.txt configure-server.yml
+      # Here's where you will add some code to rollback on failure 
+      - destroy-environment     
 
 #   run-migrations:
 #     docker:
@@ -397,6 +437,9 @@ workflows:
           
       - deploy-infrastructure:
           requires: [test-frontend, test-backend, scan-frontend, scan-backend]
+          filters:
+            branches:
+              only: [master]
           
       # - deploy-infrastructure:
       #     requires: [test-frontend, test-backend, scan-frontend, scan-backend]
