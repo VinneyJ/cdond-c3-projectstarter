@@ -286,7 +286,8 @@ jobs:
       - install-aws-cli
       - install-gzip-tar
       # Add ssh keys with fingerprint
-       fingerprints: ["2e:9b:91:11:6c:7d:65:c5:8d:02:a5:00:e7:9d:c2:3f"]
+      - add_ssh_keys:
+          fingerprints: ["2e:9b:91:11:6c:7d:65:c5:8d:02:a5:00:e7:9d:c2:3f"]
       # attach workspace
       - attach_workspace:
           at: ~/
