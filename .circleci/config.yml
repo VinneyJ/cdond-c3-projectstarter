@@ -79,7 +79,8 @@ commands:
     description: Revert the last migration if successfully run in the current workflow.
     parameters:
       workflow_id:
-        type: string    
+        type: string
+        default: ${CIRCLE_WORKFLOW_ID:0:7}    
     steps:
       - run:
           name: Revert migrations
@@ -336,8 +337,7 @@ jobs:
               echo "No migrations are pending"
             fi
       - destroy-environment
-      - destroy-environment:
-          workflow_id: ${CIRCLE_WORKFLOW_ID:0:7}
+      - revert-migrations
      #Here's where you will add some code to rollback on failure      
 
   deploy-frontend:
@@ -377,8 +377,7 @@ jobs:
             aws s3 cp dist s3://udapeople-${CIRCLE_WORKFLOW_ID:0:7} --recursive
 
       - destroy-environment
-      - destroy-environment:
-          workflow_id: ${CIRCLE_WORKFLOW_ID:0:7}
+      - revert-migrations
       # Here's where you will add some code to rollback on failure      
                     
   deploy-backend:
@@ -429,8 +428,7 @@ jobs:
             ansible-playbook -i inventory.txt deploy-backend.yml
 
       - destroy-environment
-      - destroy-environment:
-          workflow_id: ${CIRCLE_WORKFLOW_ID:0:7}
+      - revert-migrations
       # Here's where you will add some code to rollback on failure  
 
   smoke-test:
@@ -466,13 +464,12 @@ jobs:
             echo "Frontend URL: ${UDAPEOPLE_FRONTEND_URL}"
             if curl -s ${UDAPEOPLE_FRONTEND_URL} | grep "Welcome"
             then
-              exit 0
+              exit 1
             else
               exit 1
             fi
       - destroy-environment
-      - destroy-environment:
-          workflow_id: ${CIRCLE_WORKFLOW_ID:0:7}
+      - revert-migrations
       # Here's where you will add some code to rollback on failure  
 
 #   cloudfront-update:
