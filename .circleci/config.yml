@@ -70,11 +70,6 @@ commands:
             curl -fsSL https://deb.nodesource.com/setup_13.x | sudo -E bash -
             sudo apt install -y nodejs
 
-
-
-
-
-
   revert-migrations:
     description: Revert the last migration if successfully run in the current workflow.
     parameters:
@@ -438,6 +433,7 @@ jobs:
       # Checkout code from git
       - checkout
       - install-ansible
+      - install-aws-cli
       - install-nodejs
       - attach_workspace:
           at: ~/
@@ -472,39 +468,55 @@ jobs:
       - revert-migrations
       # Here's where you will add some code to rollback on failure  
 
-#   cloudfront-update:
+  cloudfront-update:
+    docker:
+      - image: amazon/aws-cli
+    steps:
+      # Checkout code from git
+      - checkout
+      - install-gzip-tar
+      - run:
+          name: Update cloudfront distribution
+          command: |
+            #
+            export OldWorkflowID=$(aws cloudformation list-exports \
+            --query "Exports[?Name==\`WorkflowID\`].Value" \
+            --no-paginate --output text)
+            echo $OldWorkflowID >> ~/OldWorkflowID.txt
+            cat ~/OldWorkflowID.txt
+
+
+            aws cloudformation deploy \
+            --template-file .circleci/files/cloudfront.yml \
+            --stack-name InitialStack \
+            --parameter-overrides WorkflowID="${CIRCLE_WORKFLOW_ID:0:7}" \
+            --tags project=udapeople
+
+            echo "Old WorkflowID: ${OldWorkflowID}"
+            echo "Current WorkflowID: ${CIRCLE_WORKFLOW_ID:0:7}"
+
+      - destroy-environment
+      - revert-migrations
+      # Here's where you will add some code to rollback on failure  
+
+# cleanup:
 #     docker:
-#       # Docker image here that supports AWS CLI
+#       # Docker image here
 #     steps:
 #       # Checkout code from git
 #       - run:
-#           name: Install dependencies
+#           name: Get old stack workflow id
 #           command: |
 #             # your code here
+#             export OldWorkflowID="the id here"
+#             export STACKS=[] #put the list of stacks here
 #       - run:
-#           name: Update cloudfront distribution
+#           name: Remove old stacks and files
 #           command: |
-#             # your code here
-#       # Here's where you will add some code to rollback on failure  
-
-# cleanup:
-    # docker:
-    #   # Docker image here
-    # steps:
-    #   # Checkout code from git
-    #   - run:
-    #       name: Get old stack workflow id
-    #       command: |
-    #         # your code here
-    #         export OldWorkflowID="the id here"
-    #         export STACKS=[] #put the list of stacks here
-    #   - run:
-    #       name: Remove old stacks and files
-    #       command: |
-    #         if [[ "${STACKS[@]}" =~ "${OldWorkflowID}" ]]
-    #         then
-    #           # your code here
-    #         fi
+#             if [[ "${STACKS[@]}" =~ "${OldWorkflowID}" ]]
+#             then
+#               # your code here
+#             fi
             
 
 workflows:
@@ -549,7 +561,8 @@ workflows:
 
       - smoke-test:
           requires: [deploy-backend, deploy-frontend]
-      # - cloudfront-update:
-      #     requires: [smoke-test]
+
+      - cloudfront-update:
+          requires: [smoke-test]
       # - cleanup:
       #     requires: [cloudfront-update]
