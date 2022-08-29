@@ -316,13 +316,12 @@ jobs:
       - checkout
       - install-aws-cli
       - restore_cache:
-          keys:
-            - backend-build
+          keys: [backend-build]
       - run:
           name: Run migrations
           command: |
             cd backend
-            npm install
+            npm install -g npm
             npm run migrations > migrations_dump.txt
             cat migrations_dump.txt
       - run:
