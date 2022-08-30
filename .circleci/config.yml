@@ -447,6 +447,7 @@ jobs:
 
             export BACKEND_API_URL=http://${UDAPEOPLE_BACKEND_IP}:3030 
             echo "Backend API URL: ${BACKEND_API_URL}"
+            sleep 50
             if curl -s ${BACKEND_API_URL}/api/status | grep "ok"
             then
               exit 0
@@ -458,6 +459,7 @@ jobs:
           command: |
             UDAPEOPLE_FRONTEND_URL="http://udapeople-${CIRCLE_WORKFLOW_ID:0:7}.s3-website-us-east-1.amazonaws.com"            
             echo "Frontend URL: ${UDAPEOPLE_FRONTEND_URL}"
+            sleep 50
             if curl -s ${UDAPEOPLE_FRONTEND_URL} | grep "Welcome"
             then
               exit 0
