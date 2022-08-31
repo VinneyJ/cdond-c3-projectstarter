@@ -478,11 +478,12 @@ jobs:
 
   cloudfront-update:
     docker:
-      - image: amazon/aws-cli
+      - image: cimg/base:stable 
     steps:
       # Checkout code from git
       - checkout
       - install-gzip-tar
+      - install-aws-cli
 
       - run:
           name: Old workflow in kvdb
