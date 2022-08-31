@@ -374,8 +374,8 @@ jobs:
       - destroy-environment
       - revert-migrations
       # Here's where you will add some code to rollback on failure      
-                 
-                    
+
+
   deploy-backend:
     docker:
       # Docker image here that supports Ansible
@@ -458,8 +458,8 @@ jobs:
             else
               exit 1
             fi
-      - destroy-environment
-      - revert-migrations
+      # - destroy-environment
+      # - revert-migrations
       # Here's where you will add some code to rollback on failure  
 
   cloudfront-update:
