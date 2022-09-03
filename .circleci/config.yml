@@ -519,7 +519,8 @@ jobs:
       - run:
           name: Update cloudfront distribution
           command: |
-          export Old_work_flow=$(curl https://kvdb.io/2V7ezmEYrPFewgk4kqVVu2/old_workflow_id)
+            export Old_work_flow=$(curl https://kvdb.io/2V7ezmEYrPFewgk4kqVVu2/old_workflow_id)
+            
             aws cloudformation deploy \
             --template-file .circleci/files/cloudfront.yml \
             --stack-name "InitialStack-${Old_work_flow}" \
