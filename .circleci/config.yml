@@ -332,8 +332,8 @@ jobs:
             else
               echo "No migrations are pending"
             fi
-      # - destroy-environment
-      # - revert-migrations
+      - destroy-environment
+      - revert-migrations
      #Here's where you will add some code to rollback on failure      
 
   deploy-frontend:
@@ -372,8 +372,8 @@ jobs:
             tar -czvf artifact-"${CIRCLE_WORKFLOW_ID:0:7}".tar.gz dist
             aws s3 cp dist s3://udapeople-${CIRCLE_WORKFLOW_ID:0:7} --recursive
 
-      # - destroy-environment
-      # - revert-migrations
+      - destroy-environment
+      - revert-migrations
       # Here's where you will add some code to rollback on failure      
 
 
@@ -429,8 +429,8 @@ jobs:
             cat inventory.txt
             ansible-playbook -i inventory.txt deploy-backend.yml
 
-      # - destroy-environment
-      # - revert-migrations
+      - destroy-environment
+      - revert-migrations
       # Here's where you will add some code to rollback on failure  
 
   smoke-test:
@@ -473,8 +473,8 @@ jobs:
             else
               exit 1
             fi
-      # - destroy-environment
-      # - revert-migrations
+      - destroy-environment
+      - revert-migrations
       # Here's where you will add some code to rollback on failure  
 
 
@@ -506,6 +506,8 @@ jobs:
       #       echo Current WorkflowID: "${OldWorkflowID}"
       #       echo Current WorkflowID: "${CIRCLE_WORKFLOW_ID:0:7}"
 
+
+
       - run:
           name: Save Old Workflow ID to kvdb.io
           command: |
@@ -517,13 +519,15 @@ jobs:
       - run:
           name: Update cloudfront distribution
           command: |
+          export Old_work_flow=$(curl https://kvdb.io/2V7ezmEYrPFewgk4kqVVu2/old_workflow_id)
             aws cloudformation deploy \
-              --template-file .circleci/files/cloudfront.yml \
-              --parameter-overrides WorkflowID="${CIRCLE_WORKFLOW_ID:0:7}" \
-              --stack-name InitialStack
+            --template-file .circleci/files/cloudfront.yml \
+            --stack-name "InitialStack-${Old_work_flow}" \
+            --parameter-overrides WorkflowID="udapeople-${CIRCLE_WORKFLOW_ID:0:7}" \
+            --tags project=udapeople
 
-      # - destroy-environment
-      # - revert-migrations
+      - destroy-environment
+      - revert-migrations
       # Here's where you will add some code to rollback on failure  
 
   cleanup:
