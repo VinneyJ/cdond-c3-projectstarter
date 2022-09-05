@@ -469,7 +469,7 @@ jobs:
             sleep 50
             if curl -s ${UDAPEOPLE_FRONTEND_URL} | grep "Welcome"
             then
-              exit 1
+              exit 0
             else
               exit 1
             fi
