@@ -25,8 +25,8 @@
   debug:
     msg: "{{ udapeople_backend_server.stdout_lines }}"
 
-# - name: "Restart after reboot"
-#   shell: |
+- name: "Restart after reboot"
+  shell: |
 #     # sudo su -c "env PATH=$PATH:/home/unitech/.nvm/versions/node/v14.3/bin pm2 startup <distribution> -u <user> --hp <home-path>
-#     sudo su -c "env PATH=$PATH:/usr/local/bin pm2 startup systemd -u ubuntu --hp /home/ubuntu"
-#     pm2 save
+    sudo su -c "env PATH=$PATH:/usr/local/bin pm2 startup systemd -u ubuntu --hp /home/ubuntu"
+    pm2 save --force
