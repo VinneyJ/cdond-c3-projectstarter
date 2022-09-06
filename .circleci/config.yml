@@ -486,7 +486,6 @@ jobs:
       - checkout
       - install-gzip-tar
       - install-aws-cli
-
       # - run:
       #     name: Update cloudfront distribution
       #     command: |
